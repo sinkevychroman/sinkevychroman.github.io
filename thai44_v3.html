@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Thai 44 Trainer</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#f5f1e8; --ink:#20242c; --muted:#6f7480; --line:#ddd8cd; --soft:#e4dfd4;
+  --mid:#2d7a4c; --high:#273d70; --low:#a8552c;
+  --midbg:#edf7f0; --highbg:#eaeef7; --lowbg:#f9efe8;
+  --thai:Tahoma,"Thonburi","Noto Sans Thai","Leelawadee UI",sans-serif;
+}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);-webkit-text-size-adjust:100%}
+.app{max-width:760px;margin:auto;padding:14px 14px 110px}
+h1{margin:6px 0 2px;font-size:28px}
+.sub{color:var(--muted);font-size:14px;margin-bottom:12px}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:10}
+button{font:inherit;font-weight:700;border:0;border-radius:14px;padding:12px;background:var(--soft);color:var(--ink);touch-action:manipulation;cursor:pointer}
+button:disabled{opacity:.85}
+button:focus-visible{outline:3px solid var(--high);outline-offset:2px}
+.tabs button{padding:10px 4px;font-size:14px}
+button.active,.primary{background:var(--high);color:#fff}
+.panel{display:none} .panel.active{display:block}
+.card{background:#fff;border-radius:22px;padding:16px;margin:12px 0;box-shadow:0 8px 24px rgba(0,0,0,.07)}
+.center{text-align:center} .muted{color:var(--muted)} .small{font-size:13px;color:var(--muted)}
+.big{font-family:var(--thai);font-size:118px;line-height:1.15;text-align:center;margin:6px 0}
+.word{font-family:var(--thai);font-size:34px;font-weight:700;text-align:center;line-height:1.4}
+.roman{text-align:center;font-size:22px;font-weight:800;margin-top:6px;letter-spacing:.01em}
+.row{display:flex;gap:8px;flex-wrap:wrap} .row button{flex:1}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.letter{background:#fff;border:1px solid var(--line);padding:8px 4px;position:relative}
+.letter b{display:block;font-family:var(--thai);font-size:38px;line-height:1.2}
+.letter span{display:block;font-size:10px;color:var(--muted);font-weight:600}
+.choices{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
+.choice{background:#fff;border:2px solid var(--line);font-size:38px;font-family:var(--thai);min-height:76px;line-height:1.2}
+.correct{background:var(--midbg)!important;border-color:var(--mid)!important}
+.wrong{background:#fbefef!important;border-color:#9c3c3c!important}
+canvas.pad{width:100%;aspect-ratio:1;background:#fff;border:2px solid var(--line);border-radius:18px;display:block;touch-action:none}
+.trace{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;font-family:var(--thai);font-size:min(230px,52vw);color:rgba(39,61,112,.13);line-height:1}
+.canvaswrap{position:relative} .hidden{display:none!important}
+.box{background:#f3f4f6;border-radius:14px;padding:12px;margin-top:10px;text-align:center;font-weight:700}
+.box.good{background:var(--midbg);color:var(--mid)} .box.bad{background:#fbefef;color:#9c3c3c}
+textarea{width:100%;border:2px solid var(--line);border-radius:14px;padding:12px;font-size:22px;font-family:var(--thai)}
+.progress{height:9px;background:#e5e1d8;border-radius:99px;overflow:hidden}
+.progress div{height:100%;background:var(--high);transition:width .2s}
+.chip{display:inline-block;padding:4px 11px;border-radius:99px;font-size:13px;font-weight:800}
+.c-m{background:var(--midbg);color:var(--mid)} .c-h{background:var(--highbg);color:var(--high)} .c-l{background:var(--lowbg);color:var(--low)}
+.bar-m{border-left:5px solid var(--mid)} .bar-h{border-left:5px solid var(--high)} .bar-l{border-left:5px solid var(--low)}
+.sounds{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+.pill{background:#f3f4f6;border-radius:12px;padding:8px 12px;font-size:15px;font-weight:700;text-align:center}
+.pill i{font-style:normal;color:var(--muted);font-weight:600;font-size:12px}
+.dead{position:absolute;top:4px;right:6px;font-size:9px;color:#9c3c3c;font-weight:800}
+.blocks{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.blocks button{font-size:13px;padding:10px 4px}
+select{font:inherit;font-weight:700;border:2px solid var(--line);border-radius:12px;padding:10px;background:#fff;width:100%}
+.stat{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
+.stat:last-child{border:0}
+.stat b{font-family:var(--thai);font-size:20px}
+.timer{font-size:40px;font-weight:800;text-align:center;font-variant-numeric:tabular-nums}
+.key{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;font-size:12px;color:var(--muted)}
+.key span{background:#f3f4f6;padding:4px 8px;border-radius:8px;font-weight:700}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+<h1>Thai 44</h1>
+<div class="sub">44 consonants · class · sound · handwriting</div>
+
+<div class="tabs">
+<button class="tab active" data-target="learn">Learn</button>
+<button class="tab" data-target="quiz">Quiz</button>
+<button class="tab" data-target="write">Write</button>
+<button class="tab" data-target="exam">Exam</button>
+<button class="tab" data-target="speed">Speed</button>
+<button class="tab" data-target="order">Order</button>
+<button class="tab" data-target="grid">All 44</button>
+<button class="tab" data-target="stats">Progress</button>
+</div>
+
+<section id="learn" class="panel active">
+<div class="card">
+<div class="blocks" id="blockPicker"></div>
+<div id="learnCount" class="small"></div>
+<div class="progress"><div id="learnBar"></div></div>
+<div id="learnLetter" class="big"></div>
+<div class="center"><span id="learnClass" class="chip"></span></div>
+<div id="learnName" class="roman" style="font-size:26px"></div>
+<div id="learnWord" class="word" style="margin-top:12px"></div>
+<div id="learnWordRoman" class="roman"></div>
+<div id="learnMeaning" class="center muted"></div>
+<div class="sounds">
+  <div class="pill"><i>starts a syllable</i><br><span id="learnInit"></span></div>
+  <div class="pill"><i>ends a syllable</i><br><span id="learnFinal"></span></div>
+</div>
+<div id="learnNote" class="box hidden"></div>
+<div class="row" style="margin-top:16px">
+<button id="prev">← Back</button><button id="hear">🔊 Play</button><button id="next" class="primary">Next →</button>
+</div>
+<div id="hearNote" class="small center hidden" style="margin-top:8px"></div>
+</div>
+<div class="card">
+<div class="center" style="font-weight:800;margin-bottom:10px">Reading the tone marks</div>
+<div class="key">
+<span>a — mid</span><span>à — low</span><span>á — high</span><span>â — falling</span><span>ǎ — rising</span>
+</div>
+<div class="small center" style="margin-top:10px">The consonant's own name carries its class: high-class letters take a rising tone (kǎw), mid and low class take a mid tone (gaw, kaw).</div>
+</div>
+</section>
+
+<section id="quiz" class="panel">
+<div class="card">
+<select id="quizScope">
+  <option value="all">All 44 letters</option>
+  <option value="due">Due for review</option>
+  <option value="weak">Weak letters only</option>
+  <option value="block">Current block only</option>
+</select>
+<div id="quizPrompt" class="center" style="font-weight:800;margin-top:14px"></div>
+<div id="quizMain" class="word" style="font-size:40px;margin:10px 0"></div>
+<div id="quizChoices" class="choices"></div>
+<div id="quizFeedback" class="box hidden"></div>
+<button id="quizNext" class="primary" style="width:100%;margin-top:10px">Next question</button>
+<div id="quizStreak" class="small center" style="margin-top:8px"></div>
+</div>
+</section>
+
+<section id="write" class="panel">
+<div class="card">
+<div class="row">
+<button class="series" data-n="5">5 random</button>
+<button class="series" data-n="10">10 random</button>
+<button class="series" data-n="44">All 44</button>
+</div>
+<div class="row" style="margin-top:8px">
+<button class="series" data-n="weak">Weak</button>
+<button class="series" data-n="block">Current block</button>
+<button class="series" data-n="due">Due</button>
+</div>
+<div id="writePrompt" class="roman" style="font-size:28px;margin:16px 0 2px"></div>
+<div id="writeSub" class="small center" style="margin-bottom:10px"></div>
+<div class="canvaswrap"><div id="trace" class="trace hidden"></div><canvas id="writeCanvas" class="pad" width="700" height="700"></canvas></div>
+<div id="writeFeedback" class="box hidden"></div>
+<button id="checkWrite" class="primary" style="width:100%;margin-top:10px">Check</button>
+<div class="row" style="margin-top:8px">
+<button id="undoWrite">Undo</button><button id="clearWrite">Clear</button><button id="revealWrite">Show letter</button>
+</div>
+<div class="row" style="margin-top:8px">
+<button id="writePrev">← Back</button><button id="writeNext" class="primary">Next →</button>
+</div>
+<div id="writeProgress" class="small center" style="margin-top:10px"></div>
+</div>
+</section>
+
+<section id="exam" class="panel">
+<div class="card">
+<div id="examCount" class="small"></div>
+<div class="progress"><div id="examBar"></div></div>
+<div id="examPrompt" class="roman" style="font-size:26px;margin:14px 0"></div>
+<div id="examChoices" class="choices"></div>
+<div id="examFeedback" class="box hidden"></div>
+<button id="examNext" class="primary" style="width:100%;margin-top:10px">Next</button>
+<button id="examRestart" style="width:100%;margin-top:8px">Restart</button>
+</div>
+</section>
+
+<section id="speed" class="panel">
+<div class="card">
+<div class="timer" id="speedTimer">60</div>
+<div class="small center" id="speedScore">Press start</div>
+<div id="speedPrompt" class="roman" style="font-size:24px;margin:14px 0;min-height:34px"></div>
+<div id="speedChoices" class="choices"></div>
+<button id="speedStart" class="primary" style="width:100%;margin-top:12px">Start</button>
+<div id="speedResult" class="box hidden"></div>
+</div>
+</section>
+
+<section id="order" class="panel">
+<div class="card">
+<div class="center" style="font-weight:800;margin-bottom:8px">Recite all 44 in order</div>
+<div id="orderReveal" class="box" style="min-height:90px;text-align:left;font-weight:600"></div>
+<div class="row" style="margin-top:8px"><button id="revealOne" class="primary">Reveal next</button><button id="revealReset">Reset</button></div>
+</div>
+<div class="card">
+<div class="center" style="font-weight:800;margin-bottom:8px">Type all 44 in order</div>
+<textarea id="orderInput" rows="4" placeholder="ก ข ฃ ค ..."></textarea>
+<div class="row" style="margin-top:8px"><button id="checkOrder" class="primary">Check</button><button id="showOrder">Show answer</button></div>
+<div id="orderResult" class="box hidden"></div>
+</div>
+</section>
+
+<section id="grid" class="panel">
+<div class="card" style="padding:12px">
+  <div class="row" style="gap:6px">
+    <span class="chip c-m" style="flex:1;text-align:center">mid · 9</span>
+    <span class="chip c-h" style="flex:1;text-align:center">high · 11</span>
+    <span class="chip c-l" style="flex:1;text-align:center">low · 24</span>
+  </div>
+  <div class="small center" style="margin-top:8px">The class sets the tone of the syllable. Without it you cannot read a word.</div>
+</div>
+<div id="letterGrid" class="grid"></div>
+</section>
+
+<section id="stats" class="panel">
+<div class="card">
+<div class="center" style="font-weight:800;margin-bottom:6px">Learned</div>
+<div class="progress"><div id="statBar"></div></div>
+<div id="statSummary" class="small center" style="margin-top:8px"></div>
+</div>
+<div class="card">
+<div class="center" style="font-weight:800;margin-bottom:8px">Weak letters</div>
+<div id="weakList"></div>
+</div>
+<div class="card">
+<button id="resetAll" style="width:100%">Reset all progress</button>
+</div>
+</section>
+</div>
+
+<script>
+/* letter, word, letter-name (romanised, tones), word romanisation, meaning, class, initial, final, obsolete */
+const L=[
+["ก","ไก่","gaw gài","gài","chicken","m","g","k",0],
+["ข","ไข่","kǎw kài","kài","egg","h","k","k",0],
+["ฃ","ขวด","kǎw kùat","kùat","bottle","h","k","k",1],
+["ค","ควาย","kaw kwaai","kwaai","buffalo","l","k","k",0],
+["ฅ","คน","kaw kon","kon","person","l","k","k",1],
+["ฆ","ระฆัง","kaw rá-kang","rá-kang","bell","l","k","k",0],
+["ง","งู","ngaw nguu","nguu","snake","l","ng","ng",0],
+["จ","จาน","jaw jaan","jaan","plate","m","j","t",0],
+["ฉ","ฉิ่ง","chǎw chìng","chìng","cymbals","h","ch","—",0],
+["ช","ช้าง","chaw cháang","cháang","elephant","l","ch","t",0],
+["ซ","โซ่","saw sôo","sôo","chain","l","s","t",0],
+["ฌ","เฌอ","chaw cher","cher","tree","l","ch","—",0],
+["ญ","หญิง","yaw yǐng","yǐng","woman","l","y","n",0],
+["ฎ","ชฎา","daw chá-daa","chá-daa","headdress","m","d","t",0],
+["ฏ","ปฏัก","dtaw bpà-dtàk","bpà-dtàk","goad","m","dt","t",0],
+["ฐ","ฐาน","tǎw tǎan","tǎan","base","h","t","t",0],
+["ฑ","มณโฑ","taw mon-too","mon-too","Montho","l","t","t",0],
+["ฒ","ผู้เฒ่า","taw pûu-tâo","pûu-tâo","elder","l","t","t",0],
+["ณ","เณร","naw neen","neen","novice monk","l","n","n",0],
+["ด","เด็ก","daw dèk","dèk","child","m","d","t",0],
+["ต","เต่า","dtaw dtào","dtào","turtle","m","dt","t",0],
+["ถ","ถุง","tǎw tǔng","tǔng","bag","h","t","t",0],
+["ท","ทหาร","taw tá-hǎan","tá-hǎan","soldier","l","t","t",0],
+["ธ","ธง","taw tong","tong","flag","l","t","t",0],
+["น","หนู","naw nǔu","nǔu","mouse","l","n","n",0],
+["บ","ใบไม้","baw bai-máai","bai-máai","leaf","m","b","p",0],
+["ป","ปลา","bpaw bplaa","bplaa","fish","m","bp","p",0],
+["ผ","ผึ้ง","pǎw pûeng","pûeng","bee","h","p","—",0],
+["ฝ","ฝา","fǎw fǎa","fǎa","lid","h","f","—",0],
+["พ","พาน","paw paan","paan","tray","l","p","p",0],
+["ฟ","ฟัน","faw fan","fan","teeth","l","f","p",0],
+["ภ","สำเภา","paw sǎm-pao","sǎm-pao","junk boat","l","p","p",0],
+["ม","ม้า","maw máa","máa","horse","l","m","m",0],
+["ย","ยักษ์","yaw yák","yák","giant","l","y","y",0],
+["ร","เรือ","raw ruea","ruea","boat","l","r","n",0],
+["ล","ลิง","law ling","ling","monkey","l","l","n",0],
+["ว","แหวน","waw wǎen","wǎen","ring","l","w","w",0],
+["ศ","ศาลา","sǎw sǎa-laa","sǎa-laa","pavilion","h","s","t",0],
+["ษ","ฤๅษี","sǎw rue-sǐi","rue-sǐi","hermit","h","s","t",0],
+["ส","เสือ","sǎw sǔea","sǔea","tiger","h","s","t",0],
+["ห","หีบ","hǎw hìip","hìip","chest","h","h","—",0],
+["ฬ","จุฬา","law jù-laa","jù-laa","kite","l","l","n",0],
+["อ","อ่าง","aw àang","àang","basin","m","—","—",0],
+["ฮ","นกฮูก","haw nók-hûuk","nók-hûuk","owl","l","h","—",0]
+];
+
+const LOOK=[
+ [0,21,31],[1,2,9,10],[3,4,20,19],[25,26,38],[27,28,29,30],
+ [24,32],[34,23],[13,14],[12,18],[36,42],[7,8],[35,39],
+ [16,22],[6,7],[40,41],[33,5],[11,12],[37,38,39]
+];
+const CLASSNAME={m:"mid class",h:"high class",l:"low class"};
+const NOTES={
+ 2:"No longer used in modern Thai — recognise it, don't drill it.",
+ 4:"No longer used in modern Thai — recognise it, don't drill it.",
+ 42:"A silent vowel carrier: อา reads as aa, not o-aa.",
+ 34:"Reads as n at the end of a syllable: ละคร is lá-kon.",
+ 12:"Written as y, but sounds n at the end of a syllable."
+};
+const BLOCKS=[[0,8],[8,16],[16,24],[24,30],[30,37],[37,44]];
+
+const $=id=>document.getElementById(id);
+const store=(k,d)=>{try{const v=localStorage.getItem(k);return v===null?d:JSON.parse(v)}catch(e){return d}};
+const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+
+let srs=store("t44srs",{});
+let learnIndex=store("t44learn",0);
+let curBlock=store("t44block",0);
+let writeIndex=store("t44write",0);
+const DAY=864e5, STEPS=[6e5,DAY,3*DAY,7*DAY,14*DAY,30*DAY];
+
+function mark(i,ok){
+  srs[i]=srs[i]||{r:0,w:0,lvl:0,due:0};
+  const s=srs[i],now=Date.now();
+  if(ok){s.r++;s.lvl=Math.min(s.lvl+1,STEPS.length-1);}
+  else{s.w++;s.lvl=0;}
+  s.due=now+STEPS[s.lvl];
+  save("t44srs",srs);renderStats();
+}
+function weight(i){
+  const s=srs[i];if(!s)return 6;
+  let w=1;
+  if(s.due<=Date.now())w+=8;
+  w+=s.w*2;
+  return Math.max(w-s.lvl,1);
+}
+function pick(pool){
+  const tot=pool.reduce((a,i)=>a+weight(i),0);
+  let r=Math.random()*tot;
+  for(const i of pool){r-=weight(i);if(r<=0)return i;}
+  return pool[pool.length-1];
+}
+const shuffled=a=>[...a].sort(()=>Math.random()-.5);
+const all=()=>[...Array(44).keys()];
+const blockOf=n=>all().slice(BLOCKS[n][0],BLOCKS[n][1]);
+const weakOnes=()=>all().filter(i=>srs[i]&&srs[i].w>0);
+const dueOnes=()=>all().filter(i=>!srs[i]||srs[i].due<=Date.now());
+
+function distractors(ans,n=3){
+  const group=LOOK.find(g=>g.includes(ans))||[];
+  const sameSound=all().filter(i=>i!==ans&&L[i][6]===L[ans][6]);
+  let pool=[...new Set([...group,...sameSound])].filter(i=>i!==ans);
+  pool=shuffled(pool).slice(0,n);
+  if(pool.length<n){
+    const rest=shuffled(all().filter(i=>i!==ans&&pool.indexOf(i)<0));
+    pool=pool.concat(rest.slice(0,n-pool.length));
+  }
+  return pool;
+}
+
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  b.classList.add("active");$(b.dataset.target).classList.add("active");
+  window.scrollTo(0,0);
+});
+
+/* ---------- shape matching for handwriting ---------- */
+const N=32, PAD=3;
+function bboxOf(ctx,w,h){
+  const d=ctx.getImageData(0,0,w,h).data;
+  let x0=w,y0=h,x1=-1,y1=-1;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    if(d[(y*w+x)*4+3]>60){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}
+  }
+  return x1<0?null:[x0,y0,x1-x0+1,y1-y0+1];
+}
+function blur(v){
+  const o=new Float32Array(N*N);
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    let s=0,c=0;
+    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+      const yy=y+dy,xx=x+dx;
+      if(yy<0||xx<0||yy>=N||xx>=N)continue;
+      s+=v[yy*N+xx];c++;
+    }
+    o[y*N+x]=s/c;
+  }
+  return o;
+}
+const work=document.createElement("canvas");work.width=N;work.height=N;
+const wctx=work.getContext("2d",{willReadFrequently:true});
+function vectorOf(srcCanvas){
+  const sc=srcCanvas.getContext("2d",{willReadFrequently:true});
+  const bb=bboxOf(sc,srcCanvas.width,srcCanvas.height);
+  if(!bb)return null;
+  const [bx,by,bw,bh]=bb;
+  const sp=(N-PAD*2)/Math.max(bw,bh);
+  const dw=bw*sp,dh=bh*sp;
+  wctx.clearRect(0,0,N,N);
+  wctx.drawImage(srcCanvas,bx,by,bw,bh,(N-dw)/2,(N-dh)/2,dw,dh);
+  const d=wctx.getImageData(0,0,N,N).data;
+  const v=new Float32Array(N*N);
+  for(let i=0;i<N*N;i++)v[i]=d[i*4+3]/255;
+  return blur(blur(v));
+}
+function cosine(a,b){
+  let dot=0,na=0,nb=0;
+  for(let i=0;i<a.length;i++){dot+=a[i]*b[i];na+=a[i]*a[i];nb+=b[i]*b[i];}
+  return (na&&nb)?dot/Math.sqrt(na*nb):0;
+}
+let refs=null,refsOk=false;
+function buildRefs(){
+  const S=280,c=document.createElement("canvas");c.width=S;c.height=S;
+  const ctx=c.getContext("2d",{willReadFrequently:true});
+  refs=L.map(row=>{
+    ctx.clearRect(0,0,S,S);
+    ctx.fillStyle="#000";ctx.textAlign="center";ctx.textBaseline="middle";
+    ctx.font='200px Tahoma,"Thonburi","Noto Sans Thai","Leelawadee UI",sans-serif';
+    ctx.fillText(row[0],S/2,S/2);
+    return vectorOf(c);
+  });
+  refsOk=refs.every(Boolean);
+}
+const ANGLES=[-0.16,-0.08,0,0.08,0.16];
+const MIN_SCORE=0.84;
+function rotatedCopy(src,ang){
+  const c=document.createElement("canvas");c.width=src.width;c.height=src.height;
+  const ctx=c.getContext("2d",{willReadFrequently:true});
+  ctx.translate(src.width/2,src.height/2);ctx.rotate(ang);ctx.translate(-src.width/2,-src.height/2);
+  ctx.drawImage(src,0,0);return c;
+}
+function judge(userCanvas,target){
+  if(!refsOk)return {status:"nofont"};
+  const cands=ANGLES.map(a=>vectorOf(a===0?userCanvas:rotatedCopy(userCanvas,a))).filter(Boolean);
+  if(!cands.length)return {status:"empty"};
+  const scored=refs.map((r,i)=>{
+    let s=0;for(const v of cands){const c=cosine(v,r);if(c>s)s=c;}
+    return {i,s};
+  }).sort((a,b)=>b.s-a.s);
+  const rank=scored.findIndex(x=>x.i===target);
+  return {status:"ok",rank,best:scored[0],score:scored[rank].s,top:scored[0].s};
+}
+
+/* ---------- learn ---------- */
+function renderBlocks(){
+  $("blockPicker").innerHTML="";
+  BLOCKS.forEach((b,n)=>{
+    const btn=document.createElement("button");
+    btn.textContent=(b[0]+1)+"–"+b[1];
+    if(n===curBlock)btn.classList.add("active");
+    btn.onclick=()=>{curBlock=n;save("t44block",n);learnIndex=b[0];renderBlocks();renderLearn();};
+    $("blockPicker").appendChild(btn);
+  });
+}
+function renderLearn(){
+  const r=L[learnIndex];
+  $("learnLetter").textContent=r[0];
+  $("learnClass").textContent=CLASSNAME[r[5]];
+  $("learnClass").className="chip c-"+r[5];
+  $("learnName").textContent=r[2];
+  $("learnWord").textContent=r[1];
+  $("learnWordRoman").textContent=r[3];
+  $("learnMeaning").textContent=r[4];
+  $("learnInit").textContent=r[6];
+  $("learnFinal").textContent=r[7];
+  $("learnCount").textContent=(learnIndex+1)+" / 44";
+  $("learnBar").style.width=((learnIndex+1)/44*100)+"%";
+  const note=NOTES[learnIndex];
+  $("learnNote").textContent=note||"";
+  $("learnNote").classList.toggle("hidden",!note);
+  const b=BLOCKS.findIndex(x=>learnIndex>=x[0]&&learnIndex<x[1]);
+  if(b!==curBlock){curBlock=b;save("t44block",b);renderBlocks();}
+  save("t44learn",learnIndex);
+}
+$("prev").onclick=()=>{learnIndex=(learnIndex+43)%44;renderLearn()};
+$("next").onclick=()=>{learnIndex=(learnIndex+1)%44;renderLearn()};
+$("hear").onclick=()=>{
+  if(!window.speechSynthesis)return hearNote();
+  const v=speechSynthesis.getVoices();
+  if(v.length&&!v.some(x=>x.lang&&x.lang.toLowerCase().indexOf("th")===0))return hearNote();
+  const u=new SpeechSynthesisUtterance(L[learnIndex][0]+" "+L[learnIndex][1]);
+  u.lang="th-TH";u.rate=.75;
+  speechSynthesis.cancel();speechSynthesis.speak(u);
+};
+function hearNote(){
+  $("hearNote").textContent="No Thai voice installed. Settings → Accessibility → Spoken Content → Voices → add Thai.";
+  $("hearNote").classList.remove("hidden");
+}
+
+/* ---------- quiz ---------- */
+let quizAnswer=0,streak=0,best=store("t44streak",0);
+function scopePool(){
+  const v=$("quizScope").value;
+  const p=v==="due"?dueOnes():v==="weak"?weakOnes():v==="block"?blockOf(curBlock):all();
+  return p.length>=4?p:all();
+}
+function newQuiz(){
+  quizAnswer=pick(scopePool());
+  const it=L[quizAnswer],k=Math.random();
+  $("quizFeedback").classList.add("hidden");$("quizChoices").innerHTML="";
+  if(k<.4){
+    $("quizPrompt").textContent="Which letter is this?";
+    $("quizMain").textContent=it[2]+" — "+it[4];
+    $("quizMain").style.fontFamily="inherit";$("quizMain").style.fontSize="22px";
+    symbolChoices();
+  } else if(k<.75){
+    $("quizPrompt").textContent="What is this letter called?";
+    $("quizMain").textContent=it[0];
+    $("quizMain").style.fontFamily="var(--thai)";$("quizMain").style.fontSize="72px";
+    shuffled([quizAnswer,...distractors(quizAnswer)]).forEach(i=>{
+      const b=document.createElement("button");b.className="choice";
+      b.style.fontSize="16px";b.style.fontFamily="inherit";
+      b.textContent=L[i][2]+" — "+L[i][4];
+      b.onclick=()=>answer(b,i===quizAnswer,"Answer: "+it[0]+" — "+it[2]);
+      $("quizChoices").appendChild(b);
+    });
+  } else {
+    $("quizPrompt").textContent="Which class is this letter?";
+    $("quizMain").textContent=it[0];
+    $("quizMain").style.fontFamily="var(--thai)";$("quizMain").style.fontSize="72px";
+    ["m","h","l"].forEach(cl=>{
+      const b=document.createElement("button");b.className="choice";
+      b.style.fontSize="17px";b.style.fontFamily="inherit";
+      b.textContent=CLASSNAME[cl];
+      b.onclick=()=>answer(b,cl===it[5],"Answer: "+CLASSNAME[it[5]]);
+      $("quizChoices").appendChild(b);
+    });
+  }
+}
+function symbolChoices(){
+  shuffled([quizAnswer,...distractors(quizAnswer)]).forEach(i=>{
+    const b=document.createElement("button");b.className="choice";b.textContent=L[i][0];
+    b.onclick=()=>answer(b,i===quizAnswer,"Answer: "+L[quizAnswer][0]+" — "+L[quizAnswer][2]);
+    $("quizChoices").appendChild(b);
+  });
+}
+function answer(btn,ok,msg){
+  [...$("quizChoices").children].forEach(x=>x.disabled=true);
+  btn.classList.add(ok?"correct":"wrong");
+  mark(quizAnswer,ok);
+  streak=ok?streak+1:0;
+  if(streak>best){best=streak;save("t44streak",best);}
+  const f=$("quizFeedback");
+  f.textContent=ok?"Correct ✓":msg;
+  f.className="box "+(ok?"good":"bad");
+  $("quizStreak").textContent="Streak "+streak+" · best "+best;
+}
+$("quizNext").onclick=newQuiz;
+$("quizScope").onchange=newQuiz;
+
+/* ---------- write ---------- */
+let writeSeries=[],writePos=0,answered=false;
+function setupPad(canvas){
+  const ctx=canvas.getContext("2d",{willReadFrequently:true});
+  ctx.lineCap="round";ctx.lineJoin="round";ctx.lineWidth=18;ctx.strokeStyle="#273d70";
+  let drawing=false,last=null,stack=[];
+  const pt=e=>{const r=canvas.getBoundingClientRect();return[(e.clientX-r.left)*canvas.width/r.width,(e.clientY-r.top)*canvas.height/r.height];};
+  canvas.addEventListener("pointerdown",e=>{
+    e.preventDefault();
+    stack.push(ctx.getImageData(0,0,canvas.width,canvas.height));
+    if(stack.length>25)stack.shift();
+    drawing=true;last=pt(e);canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener("pointermove",e=>{
+    if(!drawing)return;e.preventDefault();
+    const p=pt(e);ctx.beginPath();ctx.moveTo(last[0],last[1]);ctx.lineTo(p[0],p[1]);ctx.stroke();last=p;
+  });
+  const stop=()=>{drawing=false;last=null;};
+  canvas.addEventListener("pointerup",stop);
+  canvas.addEventListener("pointercancel",stop);
+  return{
+    clear(){ctx.clearRect(0,0,canvas.width,canvas.height);stack=[];},
+    undo(){const s=stack.pop();s?ctx.putImageData(s,0,0):ctx.clearRect(0,0,canvas.width,canvas.height);}
+  };
+}
+const pad=setupPad($("writeCanvas"));
+function renderWrite(){
+  const r=L[writeIndex];
+  answered=false;
+  $("writePrompt").textContent=r[2];
+  $("writeSub").textContent=r[4]+" · "+CLASSNAME[r[5]];
+  $("trace").textContent=r[0];
+  $("trace").classList.add("hidden");
+  $("writeFeedback").classList.add("hidden");
+  $("writeProgress").textContent=writeSeries.length?(writePos+1)+" / "+writeSeries.length:(writeIndex+1)+" / 44";
+  pad.clear();save("t44write",writeIndex);
+}
+$("checkWrite").onclick=()=>{
+  const res=judge($("writeCanvas"),writeIndex);
+  const f=$("writeFeedback");
+  f.classList.remove("hidden");
+  if(res.status==="empty"){f.className="box";f.textContent="Nothing drawn yet.";return;}
+  if(res.status==="nofont"){f.className="box";f.textContent="Automatic checking is unavailable on this device — use Show letter to compare.";return;}
+  if(res.top<MIN_SCORE){
+    f.className="box bad";f.textContent="That doesn't read as a letter yet. Draw it large and fill the box.";
+    if(!answered)mark(writeIndex,false);
+  } else if(res.rank===0){
+    f.className="box good";f.textContent="Correct \u2713";
+    if(!answered)mark(writeIndex,true);
+  } else if(res.rank<=2){
+    f.className="box bad";f.textContent="Close, but it reads more like "+L[res.best.i][0]+" ("+L[res.best.i][2]+"). Try again.";
+    if(!answered)mark(writeIndex,false);
+  } else {
+    f.className="box bad";f.textContent="Not right \u2014 the shape is off. Try again, or tap Show letter.";
+    if(!answered)mark(writeIndex,false);
+  }
+  answered=true;
+};
+$("clearWrite").onclick=()=>{pad.clear();$("writeFeedback").classList.add("hidden");};
+$("undoWrite").onclick=()=>pad.undo();
+$("revealWrite").onclick=()=>{
+  $("trace").classList.toggle("hidden");
+  $("revealWrite").textContent=$("trace").classList.contains("hidden")?"Show letter":"Hide letter";
+};
+$("writePrev").onclick=()=>{
+  if(writeSeries.length){writePos=(writePos-1+writeSeries.length)%writeSeries.length;writeIndex=writeSeries[writePos];}
+  else writeIndex=(writeIndex+43)%44;
+  $("revealWrite").textContent="Show letter";renderWrite();
+};
+$("writeNext").onclick=()=>{
+  if(writeSeries.length){writePos=(writePos+1)%writeSeries.length;writeIndex=writeSeries[writePos];}
+  else writeIndex=(writeIndex+1)%44;
+  $("revealWrite").textContent="Show letter";renderWrite();
+};
+document.querySelectorAll(".series").forEach(b=>b.onclick=()=>{
+  const n=b.dataset.n;
+  if(n==="weak"){const w=weakOnes();writeSeries=w.length?shuffled(w):shuffled(all()).slice(0,10);}
+  else if(n==="block")writeSeries=blockOf(curBlock);
+  else if(n==="due"){const d=dueOnes();writeSeries=d.length?shuffled(d):shuffled(all()).slice(0,10);}
+  else if(n==="44")writeSeries=all();
+  else writeSeries=shuffled(all()).slice(0,Number(n));
+  writePos=0;writeIndex=writeSeries[0];
+  $("revealWrite").textContent="Show letter";renderWrite();
+});
+
+/* ---------- exam ---------- */
+let examOrder=[],examPos=0,examAnswer=0,examRight=0;
+function startExam(){examOrder=shuffled(all());examPos=0;examRight=0;renderExam();}
+function renderExam(){
+  $("examFeedback").classList.add("hidden");$("examChoices").innerHTML="";
+  if(examPos>=44){
+    $("examPrompt").textContent="Finished";
+    $("examCount").textContent="44 / 44";
+    $("examBar").style.width="100%";
+    const f=$("examFeedback");
+    f.textContent="Score: "+examRight+" of 44 ("+Math.round(examRight/44*100)+"%)";
+    f.className="box "+(examRight>=40?"good":"");
+    return;
+  }
+  examAnswer=examOrder[examPos];const it=L[examAnswer];
+  $("examCount").textContent=(examPos+1)+" / 44 · "+examRight+" correct";
+  $("examBar").style.width=((examPos+1)/44*100)+"%";
+  $("examPrompt").textContent=it[2]+" — "+it[4];
+  shuffled([examAnswer,...distractors(examAnswer)]).forEach(i=>{
+    const b=document.createElement("button");b.className="choice";b.textContent=L[i][0];
+    b.onclick=()=>{
+      [...$("examChoices").children].forEach(x=>x.disabled=true);
+      const ok=i===examAnswer;
+      b.classList.add(ok?"correct":"wrong");
+      if(ok)examRight++;
+      mark(examAnswer,ok);
+      const f=$("examFeedback");
+      f.textContent=ok?"Correct ✓":"Answer: "+it[0]+" — "+it[2];
+      f.className="box "+(ok?"good":"bad");
+      $("examCount").textContent=(examPos+1)+" / 44 · "+examRight+" correct";
+    };
+    $("examChoices").appendChild(b);
+  });
+}
+$("examNext").onclick=()=>{if(examPos<44)examPos++;renderExam();};
+$("examRestart").onclick=startExam;
+
+/* ---------- speed ---------- */
+let spTime=60,spScore=0,spTimer=null,spAns=0,spRunning=false;
+$("speedStart").onclick=()=>{
+  if(spRunning)return;
+  spRunning=true;spTime=60;spScore=0;
+  $("speedResult").classList.add("hidden");
+  $("speedStart").textContent="Running";
+  $("speedTimer").textContent=spTime;
+  spTimer=setInterval(()=>{spTime--;$("speedTimer").textContent=spTime;if(spTime<=0)endSpeed();},1000);
+  nextSpeed();
+};
+function nextSpeed(){
+  spAns=pick(all());const it=L[spAns];
+  $("speedPrompt").textContent=it[2]+" — "+it[4];
+  $("speedScore").textContent="Correct: "+spScore;
+  $("speedChoices").innerHTML="";
+  shuffled([spAns,...distractors(spAns)]).forEach(i=>{
+    const b=document.createElement("button");b.className="choice";b.textContent=L[i][0];
+    b.onclick=()=>{
+      const ok=i===spAns;
+      if(ok)spScore++;
+      mark(spAns,ok);
+      if(ok)nextSpeed();
+      else{b.classList.add("wrong");setTimeout(nextSpeed,350);}
+    };
+    $("speedChoices").appendChild(b);
+  });
+}
+function endSpeed(){
+  clearInterval(spTimer);spRunning=false;
+  $("speedChoices").innerHTML="";$("speedPrompt").textContent="";
+  $("speedStart").textContent="Go again";
+  const prev=store("t44speed",0);
+  if(spScore>prev)save("t44speed",spScore);
+  const f=$("speedResult");
+  f.textContent=spScore+" in one minute · record "+Math.max(spScore,prev);
+  f.className="box good";
+}
+
+/* ---------- order ---------- */
+let revealIndex=0;
+function renderReveal(){
+  $("orderReveal").innerHTML=L.slice(0,revealIndex).map(x=>
+    '<span class="c-'+x[5]+'" style="padding:3px 7px;border-radius:8px;display:inline-block;margin:3px"><b style="font-family:var(--thai);font-size:19px">'+x[0]+'</b> '+x[2]+'</span>').join(" ");
+}
+$("revealOne").onclick=()=>{if(revealIndex<44)revealIndex++;renderReveal();};
+$("revealReset").onclick=()=>{revealIndex=0;renderReveal();};
+$("showOrder").onclick=()=>{$("orderInput").value=L.map(x=>x[0]).join(" ");};
+$("checkOrder").onclick=()=>{
+  const exp=L.map(x=>x[0]).join("");
+  const got=$("orderInput").value.replace(/[\s,，、]/g,"");
+  const f=$("orderResult");
+  if(got===exp){f.textContent="Perfect — 44 of 44 ✓";f.className="box good";}
+  else{
+    let i=0;while(i<Math.min(got.length,exp.length)&&got[i]===exp[i])i++;
+    f.textContent="First mismatch at position "+(i+1)+". Expected "+(exp[i]||"the end")+", got "+(got[i]||"nothing")+".";
+    f.className="box bad";
+  }
+};
+
+/* ---------- grid ---------- */
+L.forEach((x,i)=>{
+  const b=document.createElement("button");
+  b.className="letter bar-"+x[5];
+  b.innerHTML="<b>"+x[0]+"</b><span>"+x[2]+"</span>"+(x[8]?'<i class="dead">†</i>':"");
+  b.onclick=()=>{learnIndex=i;renderLearn();document.querySelector('[data-target=learn]').click();};
+  $("letterGrid").appendChild(b);
+});
+
+/* ---------- progress ---------- */
+function renderStats(){
+  const known=all().filter(i=>srs[i]&&srs[i].lvl>=3).length;
+  const seen=all().filter(i=>srs[i]).length;
+  $("statBar").style.width=(known/44*100)+"%";
+  $("statSummary").textContent=known+" of 44 locked in · "+seen+" seen · "+dueOnes().length+" due for review";
+  const w=weakOnes().sort((a,b)=>srs[b].w-srs[a].w).slice(0,12);
+  $("weakList").innerHTML=w.length
+    ?w.map(i=>'<div class="stat"><span><b>'+L[i][0]+'</b> '+L[i][2]+'</span><span class="muted">'+srs[i].w+' wrong / '+srs[i].r+' right</span></div>').join("")
+    :'<div class="small center">No mistakes yet. Take a quiz.</div>';
+}
+$("resetAll").onclick=()=>{
+  if(!confirm("Delete all progress?"))return;
+  ["t44srs","t44learn","t44block","t44write","t44streak","t44speed"].forEach(k=>localStorage.removeItem(k));
+  srs={};learnIndex=0;curBlock=0;writeIndex=0;streak=0;best=0;
+  renderBlocks();renderLearn();renderWrite();renderStats();newQuiz();
+};
+
+if(window.speechSynthesis)speechSynthesis.onvoiceschanged=()=>{};
+document.fonts&&document.fonts.ready?document.fonts.ready.then(buildRefs):buildRefs();
+setTimeout(()=>{if(!refsOk)buildRefs();},1200);
+renderBlocks();renderLearn();newQuiz();renderWrite();renderReveal();renderStats();startExam();
+</script>
+</body>
+</html>
